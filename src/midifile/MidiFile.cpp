@@ -527,11 +527,18 @@ bool MidiFile::write(std::ostream& out) {
 				// Don't write empty m_events (probably a delete message).
 				continue;
 			}
-			if ((*m_events[i])[j].isEndOfTrack()) {
+			// Suppressing the end-of-track messages from the note MIDI and
+			// inserting our own can cause the notes at the end of tracks to be
+			// foreshortened erroneously, even though the code below is meant
+			// to insert an EOT message manually for each track if it doesn't
+			// already exist.
+			// The simplest fix is just to keep the EOT messages from the note
+			// MIDI and insert our own EOTs when they seem to be missing.
+			// if ((*m_events[i])[j].isEndOfTrack()) {
 				// Suppress end-of-track meta messages (one will be added
 				// automatically after all track data has been written).
-				continue;
-			}
+			// 	continue;
+			// }
 			writeVLValue((*m_events[i])[j].tick, trackdata);
 			if (((*m_events[i])[j].getCommandByte() == 0xf0) ||
 					((*m_events[i])[j].getCommandByte() == 0xf7)) {
