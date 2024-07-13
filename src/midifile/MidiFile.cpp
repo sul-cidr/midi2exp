@@ -533,12 +533,17 @@ bool MidiFile::write(std::ostream& out) {
 			// to insert an EOT message manually for each track if it doesn't
 			// already exist.
 			// The simplest fix is just to keep the EOT messages from the note
-			// MIDI and insert our own EOTs when they seem to be missing.
-			// if ((*m_events[i])[j].isEndOfTrack()) {
+			// MIDI and insert our own EOTs when they seem to be missing...
+			// except for the tempo track, because not suppressing the note
+			// MIDI's EOT for the tempo track (and adding our own subsequently)
+			// can lead to the added tempo events being ignored, for certain
+			// roll types.
+			if ((i == 0) && (*m_events[i])[j].isEndOfTrack()) {
 				// Suppress end-of-track meta messages (one will be added
-				// automatically after all track data has been written).
-			// 	continue;
-			// }
+				// automatically after all track data has been written)
+				// for track 0 (the track that has tempo events).
+			 	continue;
+			}
 			writeVLValue((*m_events[i])[j].tick, trackdata);
 			if (((*m_events[i])[j].getCommandByte() == 0xf0) ||
 					((*m_events[i])[j].getCommandByte() == 0xf7)) {
